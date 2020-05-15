@@ -1,22 +1,12 @@
 package com.example.mychatapplication.Fragments;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
-import com.example.mychatapplication.Adapter.UserAdapter;
-import com.example.mychatapplication.Model.User;
+import com.example.mychatapplication.Adapter.GroupAdapter;
+import com.example.mychatapplication.Model.Group;
 import com.example.mychatapplication.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -25,18 +15,20 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 
 public class GroupFragment extends Fragment {
 
-    private View gropuFragmentView;
-    private ListView list_view;
-    private ArrayAdapter<String> arrayAdapter;
-    private ArrayList<String> list_of_groups = new ArrayList<>();
+    private View view;
+    private RecyclerView rv_group_list;
+    private GroupAdapter mgroupAdapter;
+    private List<Group> mgroups;
 
     private DatabaseReference GroupsRef;
 
@@ -47,38 +39,62 @@ public class GroupFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        gropuFragmentView = inflater.inflate(R.layout.fragment_group, container, false);
+        view = inflater.inflate(R.layout.fragment_group, container, false);
 
+        rv_group_list = view.findViewById(R.id.rv_group);
+        rv_group_list.setLayoutManager(new LinearLayoutManager(getContext()));
 
         GroupsRef = FirebaseDatabase.getInstance().getReference().child("Groups");
-        InitializeFields();
+        mgroups = new ArrayList<>();
+
+//        InitializeFields(view);
+
+
+        List<Integer>users = new ArrayList<>();
+        users.add(12344);
+        users.add(12345);
+        users.add(12346);
+        users.add(12347);
+
+//        String imageurl = "default";
+//        HashMap<String, Object> hashMap = new HashMap<>();
+//        hashMap.put("name", "Group Name will go here");
+//        hashMap.put("users", users);
+//        hashMap.put("imageurl", imageurl);
+
+
+        String id  = java.util.UUID.randomUUID().toString();
+        Group group = new Group(id, "Test Name", users);
+//        HashMap<String, Object> hashMap = new HashMap<>();
+//        hashMap.put("name", group);
+        //GroupsRef.child(id).setValue(group.toHashMap());
 
         RetriveAndDisplayGroups();
 
-        return gropuFragmentView;
+        return view;
     }
 
 
 
-    private void InitializeFields() {
-        list_view = (ListView) gropuFragmentView.findViewById(R.id.listview);
-        arrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, list_of_groups);
-        list_view.setAdapter(arrayAdapter);
-    }
+//    private void InitializeFields() {
+//        list_view = (ListView) gropuFragmentView.findViewById(R.id.listview);
+//        arrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, list_of_groups);
+//        list_view.setAdapter(arrayAdapter);
+//    }
 
     private void RetriveAndDisplayGroups() {
         GroupsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Set<String> set = new HashSet<>();
-                Iterator iterator = dataSnapshot.getChildren().iterator();
-                while (iterator.hasNext()){
-                    //Get all key that are assign fr groups
-                    set.add(((DataSnapshot)iterator.next()).getKey());
+                mgroups.clear();
+                for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                    Group group = snapshot.getValue(Group.class);
+                    assert group != null;
+                    mgroups.add(group);
                 }
-                list_of_groups.clear();
-                list_of_groups.addAll(set);
-                arrayAdapter.notifyDataSetChanged();
+
+                mgroupAdapter = new GroupAdapter(getContext(), mgroups);
+                rv_group_list.setAdapter(mgroupAdapter);
             }
 
             @Override

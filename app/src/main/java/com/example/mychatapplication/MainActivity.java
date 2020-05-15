@@ -27,6 +27,7 @@ import com.bumptech.glide.Glide;
 import com.example.mychatapplication.Fragments.ChatsFragment;
 import com.example.mychatapplication.Fragments.GroupFragment;
 import com.example.mychatapplication.Fragments.UsersFragment;
+import com.example.mychatapplication.Model.Group;
 import com.example.mychatapplication.Model.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -41,6 +42,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -74,7 +76,9 @@ public class MainActivity extends AppCompatActivity {
                 if (user.getImageUrl().equals("default")){
                     profile_image.setImageResource(R.mipmap.ic_launcher);
                 } else {
-                    Glide.with(MainActivity.this).load(user.getImageUrl()).into(profile_image);
+
+                    //change this
+                    Glide.with(getApplicationContext()).load(user.getImageUrl()).into(profile_image);
                 }
             }
 
@@ -131,10 +135,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 String groupName = gropuNameField.getText().toString();
+                List<Integer> users = new ArrayList<>();
+                users.add(12344);
+                users.add(12345);
+                users.add(12346);
+                users.add(12347);
+
+
+
+                String id  = java.util.UUID.randomUUID().toString();
+                Group group = new Group(id, groupName, users);
+                //GroupsRef.child(id).setValue(group.toHash
                 if (TextUtils.isEmpty(groupName)){
                     Toast.makeText(MainActivity.this, "Please write group name", Toast.LENGTH_SHORT).show();
                 } else {
-                    CreateNewGroup(groupName);
+                    CreateNewGroup(group);
                 }
             }
         });
@@ -148,11 +163,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void CreateNewGroup(String groupName) {
+    private void CreateNewGroup(Group group) {
          database = FirebaseDatabase.getInstance();
-         reference = database.getReference("Groups");
+         reference = database.getReference("Groups").child(group.getId());
 //         reference.setValue(groupName);
-        reference.child(groupName).setValue("").
+        reference.setValue(group.toHashMap()).
                 addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
